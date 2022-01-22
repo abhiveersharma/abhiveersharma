@@ -4,8 +4,8 @@ Partner:    None
 Date:       21-Jan-2022
 Course:     CS 3500, University of Utah, School of Computing
 GitHub ID:  abhiveersharma
-Repo:       
-Commit #:   
+Repo:       https://github.com/abhiveersharma/Spreadsheet
+Commit #:   07302769
 Project:    Formula Evaluator
 Copyright:  CS 3500 and [Abhiveer Sharma] - This work may not be copied for use in Academic Coursework.
 ```
