@@ -5,7 +5,7 @@ Date:       21-Jan-2022
 Course:     CS 3500, University of Utah, School of Computing
 GitHub ID:  abhiveersharma
 Repo:       https://github.com/abhiveersharma/Spreadsheet
-Commit #:   07302769
+Commit #: 
 Solution:   Spreadsheet
 Copyright:  CS 3500 and [Your Name(s)] - This work may not be copied for use in Academic Coursework.
 ```
