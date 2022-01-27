@@ -11,7 +11,7 @@ namespace DevelopmentTests
     ///to contain all DependencyGraphTest Unit Tests
     ///</summary>
     [TestClass()]
-    public class DependencyGraphTests
+    public class DependencyGraphTest
     {
 
         /// <summary>

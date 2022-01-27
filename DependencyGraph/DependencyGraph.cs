@@ -52,6 +52,7 @@ namespace SpreadsheetUtilities
         {
             dependees = new Dictionary<string, HashSet<string>>();
             dependents = new Dictionary<string, HashSet<string>>();
+            this.Size = 0;
             
         }
 
@@ -61,7 +62,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int Size
         {
-            get { return 0 ; }
+            private set;
+            get;
         }
 
 
@@ -74,7 +76,11 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int this[string s]
         {
-            get { return 0; }
+            
+            get {
+                if (HasDependees(s))
+                    return dependees[s].Count;
+                    return 0; }
         }
 
 
@@ -163,6 +169,35 @@ namespace SpreadsheetUtilities
         /// <param name="t"> t cannot be evaluated until s is</param>        /// 
         public void AddDependency(string s, string t)
         {
+            if (dependents.ContainsKey(s))
+            {
+               if(!dependents[s].Contains(t))
+                {
+                    dependents[s].Add(t);
+                    Size++;
+                }
+                
+            }
+            else
+            {
+                HashSet<string> _dependents = new HashSet<string>();
+                _dependents.Add(t);
+                dependents.Add(s, _dependents);
+                Size++;
+            }
+
+            if (dependees.ContainsKey(t))
+            {
+                dependees[t].Add(s);
+            }
+            else
+            {
+                HashSet<string> _dependees = new HashSet<string>();
+                _dependees.Add(s);
+                dependees.Add(t, _dependees);
+                
+            }
+
         }
 
 
@@ -173,6 +208,19 @@ namespace SpreadsheetUtilities
         /// <param name="t"></param>
         public void RemoveDependency(string s, string t)
         {
+            if (dependents.ContainsKey(s))
+            {
+                dependents[s].Remove(t);
+                Size--;
+                
+            }
+
+            if (dependees.ContainsKey(t))
+            {
+                dependees[t].Remove(s);
+
+            }
+
         }
 
 
@@ -182,6 +230,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+           HashSet<string> oldDependents = new HashSet<string>(GetDependents(s));
+            foreach (string oldDependent in oldDependents)
+            {
+                RemoveDependency(s, oldDependent);
+            }
+            foreach (string newDependent in newDependents)
+            {
+                AddDependency(s, newDependent); 
+            }
+          
         }
 
 
@@ -191,6 +249,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependees(string s, IEnumerable<string> newDependees)
         {
+            HashSet<string> oldDependees = new HashSet<string>(GetDependees(s));
+            foreach (string oldDependee in oldDependees)
+            {
+                RemoveDependency(oldDependee, s);
+            }
+            foreach (string newDependee in newDependees)
+            {
+                AddDependency(newDependee, s);
+            }
+
         }
 
     }
