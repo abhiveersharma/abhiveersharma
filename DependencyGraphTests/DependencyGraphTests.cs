@@ -7,12 +7,178 @@ using SpreadsheetUtilities;
 namespace DevelopmentTests
 {
     /// <summary>
-    ///This is a test class for DependencyGraphTest and is intended
+    /// Author: H. James de St. Germain, Abhiveer Sharma
+    /// Partner: None
+    /// Date of Creation: January 28, 2022
+    /// Course: CS 3500, University of Utah, School of Computing
+    /// Copyright: CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework. 
+    /// I, Abhiveer Sharma, certify that I wrote this code from scratch and did not copy it in part or whole from  
+    /// another source. All references used in the completion of the assignment are cited in my README file. 
+    /// I test all the methods like AddDependency,RemoveDependency, HasDependees, HasDependents, etc.
+    /// This is also contains tests provided by the instructor
+    /// ///This is a test class for DependencyGraphTest and is intended
     ///to contain all DependencyGraphTest Unit Tests
-    ///</summary>
+    /// </summary>
+
     [TestClass()]
     public class DependencyGraphTest
     {
+        //Testing the Size method
+        [TestMethod()]
+        public void TestSize()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("c", "d");
+            Assert.AreEqual(3, t.Size);
+        }
+
+        [TestMethod()]
+        public void Test_Size()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("c", "d");
+            t.AddDependency("a", "k");
+            Assert.AreEqual(4, t.Size);
+        }
+
+
+        [TestMethod()]
+        public void TestDuplicateSize()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "k");
+            Assert.AreEqual(3, t.Size);
+        }
+
+        //Testing HasDependents method
+
+        [TestMethod()]
+        public void TestHasDependents()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            Assert.IsTrue(t.HasDependents("a"));
+
+        }
+        //Testing when there are no dependents
+        [TestMethod()]
+        public void TestHasNoDependents()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            Assert.IsFalse(t.HasDependents("y"));
+
+        }
+
+        //Testing HasDependees method
+
+        [TestMethod()]
+        public void TestHasDependees()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            Assert.IsTrue(t.HasDependees("y"));
+        }
+        //Testing when there are no dependees
+        [TestMethod()]
+        public void TestHasNoDependees()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            Assert.IsFalse(t.HasDependees("a"));
+
+        }
+
+        //Testing GetDependents method
+        [TestMethod()]
+        public void TestGetDependents()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("x", "z");
+            t.AddDependency("x", "k");
+            HashSet<string> _Dependents = new HashSet<string>();
+            _Dependents.Add("y");
+            _Dependents.Add("z");
+            _Dependents.Add("k");
+            Assert.IsTrue(_Dependents.SetEquals(t.GetDependents("x")));
+
+        }
+
+        //Testing GetDependees method
+        [TestMethod()]
+        public void TestGetDependees()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("x", "z");
+            t.AddDependency("x", "k");
+            t.AddDependency("j", "b");
+            t.AddDependency("m", "b");
+            HashSet<string> _Dependees = new HashSet<string>();
+            _Dependees.Add("a");
+            _Dependees.Add("j");
+            _Dependees.Add("m");
+            Assert.IsTrue(_Dependees.SetEquals(t.GetDependees("b")));
+
+        }
+
+        //Testing AddDependency method and RemoveDependency method
+        [TestMethod()]
+        public void TestAddAndRemove()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("m", "n");
+            t.RemoveDependency("x", "y");
+            Assert.AreEqual(2, t.Size);
+
+        }
+
+        [TestMethod()]
+        public void TestAddRemove()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            t.AddDependency("a", "b");
+            t.AddDependency("x", "z");
+            t.AddDependency("m", "n");
+            t.RemoveDependency("x", "y");
+            Assert.AreEqual(3, t.Size);
+
+        }
+
+        //Testing the indexer
+        [TestMethod()]
+        public void TestIndexer()
+        {
+            DependencyGraph t = new DependencyGraph();
+            t.AddDependency("x", "y");
+            Assert.AreEqual(1, t["y"]);
+        }
+        //Testing empty indexer (no dependees)
+        [TestMethod()]
+        public void TestEmptyIndexer()
+        {
+            DependencyGraph t = new DependencyGraph();
+            Assert.AreEqual(0, t["y"]);
+        }
+
+
 
         /// <summary>
         ///Empty graph should contain nothing

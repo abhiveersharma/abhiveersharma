@@ -13,6 +13,15 @@ namespace SpreadsheetUtilities
 {
 
     /// <summary>
+    ///  /// <summary>
+    /// Author: Joe Zachary, Daniel Kopta, H. James de St. Germain & Abhiveer Sharma
+    /// Partner: None
+    /// Date of Creation: January 28, 2022
+    /// Course: CS 3500, University of Utah, School of Computing
+    /// Copyright: CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework. 
+    /// I, Abhiveer Sharma, certify that I wrote this code from scratch and did not copy it in part or whole from  
+    /// another source. All references used in the completion of the assignment are cited in my README file. 
+    /// </summary>
     /// (s1,t1) is an ordered pair of strings
     /// t1 depends on s1; s1 must be evaluated before t1
     /// 
@@ -53,7 +62,7 @@ namespace SpreadsheetUtilities
             dependees = new Dictionary<string, HashSet<string>>();
             dependents = new Dictionary<string, HashSet<string>>();
             this.Size = 0;
-            
+
         }
 
 
@@ -76,11 +85,13 @@ namespace SpreadsheetUtilities
         /// </summary>
         public int this[string s]
         {
-            
-            get {
+
+            get
+            {
                 if (HasDependees(s))
                     return dependees[s].Count;
-                    return 0; }
+                return 0;
+            }
         }
 
 
@@ -89,13 +100,13 @@ namespace SpreadsheetUtilities
         /// </summary>
         public bool HasDependents(string s)
         {
-            if(dependents.ContainsKey(s))
+            if (dependents.ContainsKey(s))
             {
                 return true;
             }
             else
             {
-                return false;    
+                return false;
             }
         }
 
@@ -122,21 +133,21 @@ namespace SpreadsheetUtilities
         public IEnumerable<string> GetDependents(string s)
         {
             HashSet<string> _dependents = new HashSet<string>();
-           // List<string> _dependents1 = new List<string>();
+            // List<string> _dependents1 = new List<string>();
             //if(dependents.TryGetValue(s, out _dependents))
             //{
             //    _dependents.CopyTo(_dependents1);
             // }
             if (dependents.ContainsKey(s))
             {
-                foreach(string _val in dependents[s])
+                foreach (string _val in dependents[s])
                 {
                     _dependents.Add(_val);
                 }
             }
-            
+
             return _dependents;
-            
+
         }
 
         /// <summary>
@@ -171,12 +182,12 @@ namespace SpreadsheetUtilities
         {
             if (dependents.ContainsKey(s))
             {
-               if(!dependents[s].Contains(t))
+                if (!dependents[s].Contains(t))
                 {
                     dependents[s].Add(t);
                     Size++;
                 }
-                
+
             }
             else
             {
@@ -195,7 +206,7 @@ namespace SpreadsheetUtilities
                 HashSet<string> _dependees = new HashSet<string>();
                 _dependees.Add(s);
                 dependees.Add(t, _dependees);
-                
+
             }
 
         }
@@ -212,7 +223,7 @@ namespace SpreadsheetUtilities
             {
                 dependents[s].Remove(t);
                 Size--;
-                
+
             }
 
             if (dependees.ContainsKey(t))
@@ -230,16 +241,16 @@ namespace SpreadsheetUtilities
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-           HashSet<string> oldDependents = new HashSet<string>(GetDependents(s));
+            HashSet<string> oldDependents = new HashSet<string>(GetDependents(s));
             foreach (string oldDependent in oldDependents)
             {
                 RemoveDependency(s, oldDependent);
             }
             foreach (string newDependent in newDependents)
             {
-                AddDependency(s, newDependent); 
+                AddDependency(s, newDependent);
             }
-          
+
         }
 
 
