@@ -45,6 +45,8 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class Formula
     {
+        HashSet<string> variables;
+        string _formula;
 
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
@@ -83,61 +85,64 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-            string _formula = "";
+          
             int counter = 0;
             string prevToken = "";
-
+            variables = new HashSet<string>();
+            _formula = "";
             foreach(string token in GetTokens(formula))
             {
-                string normalizedToken = normalize(token);
-                if(isVariable(normalizedToken) && isValid(normalizedToken))
+                if (isVariable(token))
                 {
-                    throw new FormulaFormatException("Syntactical Error");
+                    string normalizedToken = normalize(token);
+                    if ((isVariable(normalizedToken) && isValid(normalizedToken)))
+                    {
+                        variables.Add(normalizedToken);
+                    }
+
                 }
+                 
                 //5. Starting Token Rule - Not implemented right
-                if(isNumber(normalizedToken) || isVariable(normalizedToken) || normalizedToken.Equals("(")){
-                    _formula += normalizedToken;
+                if(isNumber(token) || isVariable(token) || token.Equals("(")){
+                    _formula += token;
                 }
                 else
                 {
                     throw new FormulaFormatException("Starting Token rule violated !");
                 }
                 //1. Specific Token Rule - Not implemented right
-                if (normalizedToken.Equals("(") && normalizedToken.Equals(")") && isOperator(normalizedToken) && isNumber(normalizedToken) && isVariable(normalizedToken))
+                if (token.Equals("(") && token.Equals(")") && isOperator(token) && isNumber(token) && isVariable(token))
                 {
 
-                    _formula += normalizedToken;
+                    _formula += token;
 
                 }
                 else
                 {
-                    throw new FormulaFormatException("Syntactical Error");
+                    throw new FormulaFormatException("Syntactical Error !");
                 }
 
                 //2. One Token Rule - To be implemented
                 //3. Right Parentheses Rule
-                if (normalizedToken.Equals(")"))
+                if (token.Equals(")"))
                 {
                     counter++;
                 }
 
-                if (normalizedToken.Equals("("))
+                if (token.Equals("("))
                 {
                     counter--;
                 }
-                if (counter < 0)
-                {
-                    _formula += normalizedToken;
-                }
-                else
+                if (counter > 0)
                 {
                     throw new FormulaFormatException("Right Parentheses rule violated !");
                 }
-                prevToken = normalizedToken;
+               
+                prevToken = token;
                 //7. Parenthesis/Operator Following Rule - Not implemented right
                 if(prevToken.Equals("(") || isOperator(prevToken))
                 {
-                    if(isNumber(normalizedToken) || isVariable(normalizedToken) || normalizedToken.Equals("("))
+                    if(!(isNumber(token) || isVariable(token) || token.Equals("(")))
                     {
                         throw new FormulaFormatException("Parenthesis/Operator Following rule violated !");
                     }
@@ -145,7 +150,7 @@ namespace SpreadsheetUtilities
                 //8. Extra Following Rule - Not implemented right
                 if (isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")"))
                 {
-                    if(isOperator(normalizedToken) || normalizedToken.Equals(")"))
+                    if(!(isOperator(token) || token.Equals(")")))
                     {
                         throw new FormulaFormatException("Extra Following rule violated !");
                     }    
@@ -155,7 +160,12 @@ namespace SpreadsheetUtilities
             //4. Balanced Parantheses rule
             if (counter != 0)
             {
-                throw new FormulaFormatException(" Balanced Parantheses rule has been violated");
+                throw new FormulaFormatException("Balanced Parantheses rule has been violated !");
+            }
+            //6. Ending Token Rule 
+            if(!(isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")")))
+            {
+                throw new FormulaFormatException("Ending Token rule violated !");
             }
             
         }
@@ -228,8 +238,13 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
+
             return null;
+
         }
+
+
+                 
 
         /// <summary>
         /// Enumerates the normalized versions of all of the variables that occur in this 
@@ -244,7 +259,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public IEnumerable<String> GetVariables()
         {
-            return null;
+            //use a hashset instance variables and add variables there in constructor
+            return variables;
         }
 
         /// <summary>
@@ -259,7 +275,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override string ToString()
         {
-            return null;
+            //use a string - _formula as instance variable and add tokens to it in constructor
+            return _formula;
         }
 
         /// <summary>
@@ -286,7 +303,9 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override bool Equals(object? obj)
         {
-            return false;
+            if (!(obj is Formula))
+                return false;
+            return obj.ToString() == _formula;
         }
 
         /// <summary>
@@ -296,7 +315,9 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
-            return false;
+            if (ReferenceEquals(f1, null))
+                return ReferenceEquals(f2, null);
+            return f1.Equals(f2);
         }
 
         /// <summary>
@@ -316,7 +337,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public override int GetHashCode()
         {
-            return 0;
+            return _formula.GetHashCode();
         }
 
         /// <summary>
