@@ -45,8 +45,9 @@ namespace SpreadsheetUtilities
     /// </summary>
     public class Formula
     {
-        HashSet<string> variables;
-        string _formula;
+        private HashSet<string> variables;
+        private string _formula;
+        private List<string> tokens;
 
         /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
@@ -85,44 +86,43 @@ namespace SpreadsheetUtilities
         /// </summary>
         public Formula(String formula, Func<string, string> normalize, Func<string, bool> isValid)
         {
-          
+
             int counter = 0;
             string prevToken = "";
             variables = new HashSet<string>();
             _formula = "";
-            foreach(string token in GetTokens(formula))
+            tokens = new List<string>();
+            foreach (string token in GetTokens(formula))
             {
+                if (isNumber(token))
+                {
+                    string numToken = Double.Parse(token).ToString();
+                    tokens.Add(numToken);
+                    _formula += numToken;
+                }
                 if (isVariable(token))
                 {
                     string normalizedToken = normalize(token);
                     if ((isVariable(normalizedToken) && isValid(normalizedToken)))
                     {
                         variables.Add(normalizedToken);
+                        tokens.Add(normalizedToken);
+                        _formula += normalizedToken;
                     }
 
                 }
-                 
-                //5. Starting Token Rule - Not implemented right
-                if(isNumber(token) || isVariable(token) || token.Equals("(")){
-                    _formula += token;
-                }
-                else
+                if (isOperator(token) || token.Equals("(") || token.Equals(")"))
                 {
-                    throw new FormulaFormatException("Starting Token rule violated !");
+                    tokens.Add(token);
+                    _formula += token;
                 }
                 //1. Specific Token Rule - Not implemented right
-                if (token.Equals("(") && token.Equals(")") && isOperator(token) && isNumber(token) && isVariable(token))
+                if (!(token.Equals("(") || token.Equals(")") || isOperator(token) || isNumber(token) || isVariable(token)))
                 {
 
-                    _formula += token;
+                    throw new FormulaFormatException("Specific Token rule violated !");
 
                 }
-                else
-                {
-                    throw new FormulaFormatException("Syntactical Error !");
-                }
-
-                //2. One Token Rule - To be implemented
                 //3. Right Parentheses Rule
                 if (token.Equals(")"))
                 {
@@ -137,12 +137,10 @@ namespace SpreadsheetUtilities
                 {
                     throw new FormulaFormatException("Right Parentheses rule violated !");
                 }
-               
-                prevToken = token;
                 //7. Parenthesis/Operator Following Rule - Not implemented right
-                if(prevToken.Equals("(") || isOperator(prevToken))
+                if (prevToken.Equals("(") || isOperator(prevToken))
                 {
-                    if(!(isNumber(token) || isVariable(token) || token.Equals("(")))
+                    if (!(isNumber(token) || isVariable(token) || token.Equals("(")))
                     {
                         throw new FormulaFormatException("Parenthesis/Operator Following rule violated !");
                     }
@@ -150,11 +148,12 @@ namespace SpreadsheetUtilities
                 //8. Extra Following Rule - Not implemented right
                 if (isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")"))
                 {
-                    if(!(isOperator(token) || token.Equals(")")))
+                    if (!(isOperator(token) || token.Equals(")")))
                     {
                         throw new FormulaFormatException("Extra Following rule violated !");
-                    }    
+                    }
                 }
+                prevToken = token;
 
             }
             //4. Balanced Parantheses rule
@@ -163,11 +162,22 @@ namespace SpreadsheetUtilities
                 throw new FormulaFormatException("Balanced Parantheses rule has been violated !");
             }
             //6. Ending Token Rule 
-            if(!(isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")")))
+            if (!(isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")")))
             {
                 throw new FormulaFormatException("Ending Token rule violated !");
             }
-            
+            //5. Starting Token Rule - Not implemented right
+            if (!(isNumber(tokens[0]) || isVariable(tokens[0]) || tokens[0].Equals("(")))
+            {
+                throw new FormulaFormatException("Starting Token rule violated !");
+            }
+            //2. One Token Rule - To be implemented
+            if(tokens.Count == 0)
+            {
+                throw new FormulaFormatException("One Token rule violated !");
+            }
+
+
         }
 
         /// <summary>
@@ -213,7 +223,7 @@ namespace SpreadsheetUtilities
             {
                 return true;
             }
-            return false;   
+            return false;
         }
         /// <summary>
         /// Evaluates this Formula, using the lookup delegate to determine the values of
@@ -238,13 +248,190 @@ namespace SpreadsheetUtilities
         /// </summary>
         public object Evaluate(Func<string, double> lookup)
         {
+            Stack<double> values = new Stack<double>();
+            Stack<string> operators = new Stack<string>();
+            foreach (string token in tokens)
+            {
+                //This removes the white space.
+                String _token = token.Trim();
+                double numericValue;
+                bool isNumber = double.TryParse(_token, out numericValue);
+                try
+                {
+                    if (isNumber)
+                    {
+                        if (StackExtension.IsOnTop(operators, "*") || StackExtension.IsOnTop(operators, "/"))
+                        {
 
-            return null;
+                            double operand = values.Pop();
+                            String _operator = operators.Pop();
+                            double result = Calculate(operand, _operator, numericValue);
+                            values.Push(result);
+                        }
+
+                        else
+                        {
+                            values.Push(numericValue);
+                        }
+                    }
+
+                    if (isVariable(_token))
+                    {
+                        
+                         double variableValue = lookup(_token);
+                        if (StackExtension.IsOnTop(operators, "*") || StackExtension.IsOnTop(operators, "/"))
+                        {
+
+                            double operand = values.Pop();
+                            String _operator = operators.Pop();
+
+                            double result = Calculate(operand, _operator, variableValue);
+                            values.Push(result);
+                        }
+
+                        else
+                        {
+                            values.Push(variableValue);
+                        }
+                       
+                    }
+
+                    if (((_token.Equals("+") || _token.Equals("-"))))
+                    {
+                        if (StackExtension.IsOnTop(operators, "+") || StackExtension.IsOnTop(operators, "-"))
+                        {
+                            if (values.Count < 2)
+                            {
+                                throw new ArgumentException();
+                            }
+                            double operand1 = values.Pop();
+                            double operand2 = values.Pop();
+                            string _operator = operators.Pop();
+                            double result = Calculate(operand1, _operator, operand2);
+                            values.Push(result);
+
+                        }
+                        operators.Push(_token);
+                    }
+
+                    if (_token.Equals("*") || _token.Equals("/"))
+                    {
+                        operators.Push(_token);
+                    }
+
+                    if (_token.Equals("("))
+                    {
+                        operators.Push(_token);
+                    }
+
+                    if (_token.Equals(")"))
+                    {
+                        if (values.Count >= 2 && (StackExtension.IsOnTop(operators, "+") || StackExtension.IsOnTop(operators, "-")))
+                        {
+                            double operand1 = values.Pop();
+                            double operand2 = values.Pop();
+                            string _operator = operators.Pop();
+                            double result = Calculate(operand1, _operator, operand2);
+                            values.Push(result);
+                        }
+
+                        if (StackExtension.IsOnTop(operators, "("))
+                        {
+                            operators.Pop();
+                        }
+                        else
+                        {
+                            throw new ArgumentException();
+                        }
+                        if (values.Count >= 2 && (StackExtension.IsOnTop(operators, "*") || StackExtension.IsOnTop(operators, "/")))
+                        {
+                            double operand1 = values.Pop();
+                            double operand2 = values.Pop();
+                            string _operator = operators.Pop();
+                            double result = Calculate(operand2, _operator, operand1);
+                            values.Push(result);
+                        }
+                    }
+
+
+
+                }
+                catch (ArgumentException)
+                {
+                    return new FormulaError("Lookup couldn't find the value of variable");
+                }
+                catch (DivideByZeroException)
+                {
+                    return new FormulaError("Division by zero error !");
+                }
+            }
+
+            // After the last token has been processed
+            if (operators.Count == 0 && values.Count == 1)
+            {
+                return values.Pop();
+            }
+
+            else
+            {
+                
+                    double operand1 = values.Pop();
+                    double operand2 = values.Pop();
+                    string _operator = operators.Pop();
+                    double result = Calculate(operand1, _operator, operand2);
+                    return result;
+              
+            }
+
+
+        }
+        /// <summary>
+        /// This is a helper method made for calculating the value of arithmetic expression
+        /// involving integers and one of the following operators - '+', '-', '*' & '/'.
+        /// Throws an exception if division by zero occurs
+        /// <param name="value1"></param> The first value popped off the value stack
+        /// <param name="exp"></param> The operator popped off the operator stack
+        /// <param name="value2"></param> The second value popped off the value stack
+        /// <returns></returns> The final result after performing the mathematical operation
+        /// <exception cref="ArgumentException"></exception>
+        /// </summary>
+        private static double Calculate(double value1, String exp, double value2)
+        {
+            if (exp.Equals("*"))
+            {
+                return value1 * value2;
+            }
+            if (exp.Equals("+"))
+            {
+                return value1 + value2;
+            }
+            if (exp.Equals("-"))
+            {
+                return value2 - value1;
+            }
+
+            if (exp.Equals("/"))
+            {
+                if (value2 == 0)
+                {
+                    throw new DivideByZeroException();
+                }
+                else
+                {
+                    return value1 / value2;
+                }
+            }
+
+            return 0;
 
         }
 
 
-                 
+
+
+
+
+
 
         /// <summary>
         /// Enumerates the normalized versions of all of the variables that occur in this 
@@ -327,7 +514,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator !=(Formula f1, Formula f2)
         {
-            return false;
+            return !(f1==f2);
         }
 
         /// <summary>
@@ -371,6 +558,8 @@ namespace SpreadsheetUtilities
 
         }
     }
+}
+    
 
     /// <summary>
     /// Used to report syntactic errors in the argument to the Formula constructor.
@@ -406,7 +595,8 @@ namespace SpreadsheetUtilities
         /// </summary>
         public string Reason { get; private set; }
     }
-}
+
+
 
 
 // <change>
@@ -420,3 +610,33 @@ namespace SpreadsheetUtilities
 //   Notice that the "where T : notnull" tells the compiler that the Stack can contain any object
 //   as long as it doesn't allow nulls!
 // </change>
+ /// <summary>
+    /// This is an extension class written to help in the Evaluate method above in the Evaluator class
+    /// This class implements the IsOnTop method
+    /// The implementation of this class is inspired by Prof. Daniel Kopta's work.
+    /// </summary>
+    public static class StackExtension
+    {
+    /// <summary>
+    /// This method checks the count of a stack (In our case Operator stack) and also finds out
+    /// if the top of the stack matches object x
+    /// <typeparam name="T"></typeparam> The type of the stack (In our case string)
+    /// <param name="stack"></param> The stack whose count wi
+    /// <param name="x"></param> The item at the top of the stack (In our case one of: +,-,/,*,(,)
+    /// <returns></returns>
+    /// </summary>
+    public static Boolean IsOnTop<T>(this Stack<T> stack, T x) where T : notnull
+    {
+        if (stack.Count >= 1 && stack.Peek().Equals(x))
+        {
+            return true;
+        }
+
+        else
+        {
+            return false;
+        }
+    }
+    }
+
+
