@@ -232,7 +232,7 @@ namespace FormulaEvaluator
         /// <param name="x"></param> The item at the top of the stack (In our case one of: +,-,/,*,(,)
         /// <returns></returns>
         /// </summary>
-        public static Boolean IsOnTop<T>(this Stack<T> stack, T x)
+        public static Boolean IsOnTop<T>(this Stack<T> stack, T x) where T:notnull
         {
             if (stack.Count >= 1 && stack.Peek().Equals(x))
             {

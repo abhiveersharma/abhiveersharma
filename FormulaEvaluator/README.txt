@@ -26,7 +26,7 @@ No peers in this class were consulted during the implementation of this project 
 
 # Time Expenditures:
 
-    1. Assignment One:   Predicted Hours:          20       Actual Hours:       15
+    1. Assignment One:   Predicted Hours:          20     Actual Hours:       15
 
 # References:
 

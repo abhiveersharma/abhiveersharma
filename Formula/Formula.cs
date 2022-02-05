@@ -26,6 +26,13 @@ using System.Text.RegularExpressions;
 namespace SpreadsheetUtilities
 {
     /// <summary>
+    /// Author: Joe Zachary, Daniel Kopta, H. James de St. Germain & Abhiveer Sharma
+    /// Partner: None
+    /// Date of Creation: Feburary 4, 2022
+    /// Course: CS 3500, University of Utah, School of Computing
+    /// Copyright: CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework. 
+    /// I, Abhiveer Sharma, certify that I wrote this code from scratch and did not copy it in part or whole from  
+    /// another source. All references used in the completion of the assignment are cited in my README file. 
     /// Represents formulas written in standard infix notation using standard precedence
     /// rules.  The allowed symbols are non-negative numbers written using double-precision 
     /// floating-point syntax (without unary preceeding '-' or '+'); 
@@ -109,6 +116,10 @@ namespace SpreadsheetUtilities
                         tokens.Add(normalizedToken);
                         _formula += normalizedToken;
                     }
+                    else
+                    {
+                        throw new FormulaFormatException("Invalid token");
+                    }
 
                 }
                 if (isOperator(token) || token.Equals("(") || token.Equals(")"))
@@ -116,7 +127,7 @@ namespace SpreadsheetUtilities
                     tokens.Add(token);
                     _formula += token;
                 }
-                //1. Specific Token Rule - Not implemented right
+                //1. Specific Token Rule
                 if (!(token.Equals("(") || token.Equals(")") || isOperator(token) || isNumber(token) || isVariable(token)))
                 {
 
@@ -137,7 +148,7 @@ namespace SpreadsheetUtilities
                 {
                     throw new FormulaFormatException("Right Parentheses rule violated !");
                 }
-                //7. Parenthesis/Operator Following Rule - Not implemented right
+                //7. Parenthesis/Operator Following Rule
                 if (prevToken.Equals("(") || isOperator(prevToken))
                 {
                     if (!(isNumber(token) || isVariable(token) || token.Equals("(")))
@@ -145,7 +156,7 @@ namespace SpreadsheetUtilities
                         throw new FormulaFormatException("Parenthesis/Operator Following rule violated !");
                     }
                 }
-                //8. Extra Following Rule - Not implemented right
+                //8. Extra Following Rule
                 if (isNumber(prevToken) || isVariable(prevToken) || prevToken.Equals(")"))
                 {
                     if (!(isOperator(token) || token.Equals(")")))
@@ -166,12 +177,12 @@ namespace SpreadsheetUtilities
             {
                 throw new FormulaFormatException("Ending Token rule violated !");
             }
-            //5. Starting Token Rule - Not implemented right
+            //5. Starting Token Rule
             if (!(isNumber(tokens[0]) || isVariable(tokens[0]) || tokens[0].Equals("(")))
             {
                 throw new FormulaFormatException("Starting Token rule violated !");
             }
-            //2. One Token Rule - To be implemented
+            //2. One Token Rule
             if(tokens.Count == 0)
             {
                 throw new FormulaFormatException("One Token rule violated !");
@@ -502,8 +513,7 @@ namespace SpreadsheetUtilities
         /// </summary>
         public static bool operator ==(Formula f1, Formula f2)
         {
-            if (ReferenceEquals(f1, null))
-                return ReferenceEquals(f2, null);
+           
             return f1.Equals(f2);
         }
 
