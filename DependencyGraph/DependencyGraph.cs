@@ -13,7 +13,6 @@ namespace SpreadsheetUtilities
 {
 
     /// <summary>
-    ///  /// <summary>
     /// Author: Joe Zachary, Daniel Kopta, H. James de St. Germain & Abhiveer Sharma
     /// Partner: None
     /// Date of Creation: January 28, 2022
