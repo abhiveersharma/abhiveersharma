@@ -62,12 +62,64 @@ namespace SS
     {
         private Dictionary<string, Cell> cells;
         DependencyGraph dg;
-        public Spreadsheet()
+
+        private bool changed;
+
+        public override bool Changed
+        {
+            get
+            {
+                return changed;
+            }
+
+            protected set
+            {
+                changed = value;
+            }
+        }
+
+        //zero argument constructor
+        public Spreadsheet():base(s=>true,s=>s,"default")
         {
             // initialize spreadsheet variables;
             cells = new Dictionary<string, Cell>();
             dg = new DependencyGraph();
+            Changed = false;
         }
+        //three argument constructor
+        public Spreadsheet(Func<string,bool>isValid, Func<string,string>normalize,string version) : base(isValid,normalize,version)
+        {
+            // initialize spreadsheet variables;
+            cells = new Dictionary<string, Cell>();
+            dg = new DependencyGraph();
+            Changed = false;
+        }
+        //four argument constructor
+        public Spreadsheet(String filePath,Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
+        {
+            // initialize spreadsheet variables;
+            cells = new Dictionary<string, Cell>();
+            dg = new DependencyGraph();
+            Changed = false;
+        }
+        /// <summary>
+        /// isVariable method helps in checking the validity of cell name
+        /// </summary>
+        /// <param name="token"></param> The token to be matched with the regex
+        /// <returns></returns> A boolean
+
+        private Boolean isVariable(String token)
+        {
+            if (Regex.IsMatch(token, @"^[a-zA-Z_][a-zA-Z0-9_]*$") && IsValid(token))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
 
         /// <summary>
         /// This is a private nested class used to represent a Cell in this spreadsheet
@@ -80,16 +132,74 @@ namespace SS
 
             // contents of the cell
            public object contents;
+            
             // value of the cell
-            //private object value;
+            public object values;
 
             public Cell(object _contents)
             {
-                contents = _contents;
-              
-               
+                if(_contents is string)
+                {
+                    contents = _contents;
+                    values = contents;
+                   
+                }
+                if(_contents is double)
+                {
+                    contents = _contents;
+                    values = contents;
+                }
+             
+            }
+
+            public Cell (object _contents, Func<string, double> lookup)
+            {
+                if (_contents is Formula)
+                {
+                    contents = _contents;
+                    Formula value = (Formula)contents;
+                    values = value.Evaluate(lookup);
+                }
+            }
+
+            /// <summary>
+            ///     Helper method for re-evaluating formulas when their dependees 
+            ///     are changed
+            ///     This method should only be used on cells that have a Formula as
+            ///     their contents. 
+            /// </summary>
+            /// <param name="lookup">Lookup delegate for value</param>
+            public void ReEvaluate(Func<string, double> lookup)
+            {
+                if ((contents is Formula))
+                {
+                    Formula reEvaluate = (Formula)contents;
+                    values = reEvaluate.Evaluate(lookup);
+                }
+            }
+
+
+        }
+
+        /// <summary>
+        /// Helper method for evaluating functions by finding values
+        /// associated with a cell
+        /// </summary>
+        /// <param name="name">The cell name to be evaluated </param>
+        /// <returns></returns>
+        private double lookupValue(String name)
+        {
+            Object cellValue = GetCellValue(name);
+            if (cellValue is Double)
+            {
+                return (double)cellValue;
+            }
+            else
+            {
+                throw new ArgumentException("error");
             }
         }
+
 
         /// <summary>
         /// If name is null or invalid, throws an InvalidNameException.
@@ -103,34 +213,16 @@ namespace SS
             {
                 throw new InvalidNameException();
             }
-            Cell content;
-            if (cells.TryGetValue(name,out content))
+            Cell cell;
+            name = Normalize(name);
+            if (cells.TryGetValue(name,out cell))
             {
-                //Cell cell =  cells[name];
-                return content.contents;
+                return cell.contents;
             }
             return "";
         }
       
-        /// <summary>
-        /// isVariable method helps in checking the validity of cell name
-        /// </summary>
-        /// <param name="token"></param> The token to be matched with the regex
-        /// <returns></returns> A boolean
-        private Boolean isVariable(String token)
-        {
-
-
-            if (Regex.IsMatch(token, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
+       
         /// <summary>
         /// Enumerates the names of all the non-empty cells in the spreadsheet.
         /// </summary>
@@ -156,7 +248,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// list {A1, B1, C1} is returned.
         /// </summary>
-        public override IList<string> SetCellContents(string name, double number)
+        protected override IList<string> SetCellContents(string name, double number)
         {
             if (ReferenceEquals(name, null) || !isVariable(name))
             {
@@ -185,7 +277,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// list {A1, B1, C1} is returned.
         /// </summary>
-        public override IList<string> SetCellContents(string name, string text)
+        protected override IList<string> SetCellContents(string name, string text)
         {
 
             if (ReferenceEquals(text, null))
@@ -222,7 +314,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// list {A1, B1, C1} is returned.
         /// </summary>
-        public override IList<string> SetCellContents(string name, Formula formula)
+        protected override IList<string> SetCellContents(string name, Formula formula)
         {
 
             if (ReferenceEquals(formula, null))
@@ -237,7 +329,7 @@ namespace SS
             dg.ReplaceDependees(name, formula.GetVariables());
             //Use a try catch block to implement circular dependency
             try {
-                Cell cell = new Cell(formula);
+                Cell cell = new Cell(formula,lookupValue);
                 List<string> vs = new List<string>(GetCellsToRecalculate(name));
                 if (cells.ContainsKey(name))
                 {
@@ -272,5 +364,174 @@ namespace SS
         {
            return dg.GetDependents(name);
         }
+        /// <summary>
+        ///   <para>Sets the contents of the named cell to the appropriate value. </para>
+        ///   <para>
+        ///       First, if the content parses as a double, the contents of the named
+        ///       cell becomes that double.
+        ///   </para>
+        ///
+        ///   <para>
+        ///       Otherwise, if content begins with the character '=', an attempt is made
+        ///       to parse the remainder of content into a Formula.  
+        ///       There are then three possible outcomes:
+        ///   </para>
+        ///
+        ///   <list type="number">
+        ///       <item>
+        ///           If the remainder of content cannot be parsed into a Formula, a 
+        ///           SpreadsheetUtilities.FormulaFormatException is thrown.
+        ///       </item>
+        /// 
+        ///       <item>
+        ///           If changing the contents of the named cell to be f
+        ///           would cause a circular dependency, a CircularException is thrown,
+        ///           and no change is made to the spreadsheet.
+        ///       </item>
+        ///
+        ///       <item>
+        ///           Otherwise, the contents of the named cell becomes f.
+        ///       </item>
+        ///   </list>
+        ///
+        ///   <para>
+        ///       Finally, if the content is a string that is not a double and does not
+        ///       begin with an "=" (equal sign), save the content as a string.
+        ///   </para>
+        /// </summary>
+        ///
+        /// <exception cref="InvalidNameException"> 
+        ///   If the name parameter is null or invalid, throw an InvalidNameException
+        /// </exception>
+        /// 
+        /// <exception cref="SpreadsheetUtilities.FormulaFormatException"> 
+        ///   If the content is "=XYZ" where XYZ is an invalid formula, throw a FormulaFormatException.
+        /// </exception>
+        /// 
+        /// <exception cref="CircularException"> 
+        ///   If changing the contents of the named cell to be the formula would 
+        ///   cause a circular dependency, throw a CircularException.  
+        ///   (NOTE: No change is made to the spreadsheet.)
+        /// </exception>
+        /// 
+        /// <param name="name"> The cell name that is being changed</param>
+        /// <param name="content"> The new content of the cell</param>
+        /// 
+        /// <returns>
+        ///       <para>
+        ///           This method returns a list consisting of the passed in cell name,
+        ///           followed by the names of all other cells whose value depends, directly
+        ///           or indirectly, on the named cell. The order of the list MUST BE any
+        ///           order such that if cells are re-evaluated in that order, their dependencies 
+        ///           are satisfied by the time they are evaluated.
+        ///       </para>
+        ///
+        ///       <para>
+        ///           For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        ///           list {A1, B1, C1} is returned.  If the cells are then evaluate din the order:
+        ///           A1, then B1, then C1, the integrity of the Spreadsheet is maintained.
+        ///       </para>
+        /// </returns>
+        public override IList<string> SetContentsOfCell(string name, string content)
+        {
+            if (ReferenceEquals(content, null))
+            {
+                throw new ArgumentNullException();
+            }
+            if (ReferenceEquals(name, null) || !(isVariable(name)))
+            {
+                throw new InvalidNameException();
+            }
+            List<String> calculatedCells;
+            double value;
+            if (content.Equals(""))
+            {
+                calculatedCells = new List<string>(SetCellContents(name, content));
+            }
+            else if (Double.TryParse(content, out value))
+            {
+                calculatedCells = new List<string>(SetCellContents(name, value));
+
+            }
+            else if (content.Substring(0, 1).Equals("="))
+            {
+                Formula f = new Formula(content.Substring(1, content.Length - 1), Normalize, IsValid);
+                calculatedCells = new List<string>(SetCellContents(name, f));
+
+            }
+            else
+            {
+                calculatedCells = new List<string>(SetCellContents(name, content));
+            }
+
+            Changed = true;
+
+            foreach (string token in calculatedCells)
+            {
+                Cell cellValue;
+
+                if (cells.TryGetValue(token, out cellValue))
+                    cellValue.ReEvaluate(lookupValue);
+            }
+
+            return calculatedCells;
+        }
+
+    
+
+
+        public override string GetSavedVersion(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Save(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// If name is invalid, throws an InvalidNameException.
+        /// </summary>
+        ///
+        /// <exception cref="InvalidNameException"> 
+        ///   If the name is invalid, throw an InvalidNameException
+        /// </exception>
+        /// 
+        /// <param name="name"> The name of the cell that we want the value of (will be normalized)</param>
+        /// 
+        /// <returns>
+        ///   Returns the value (as opposed to the contents) of the named cell.  The return
+        ///   value should be either a string, a double, or a SpreadsheetUtilities.FormulaError.
+        /// </returns>
+        public override object GetCellValue(string name)
+        {
+            if (!isVariable(name))
+            {
+                throw new InvalidNameException();
+            }
+
+
+            Cell cell;
+
+            if (cells.TryGetValue(name, out cell))
+            {
+
+                return cell.values;
+            }
+            else
+            {
+                return "";
+            }
+
+        }
+
+       
+
+        //doubts about PS5
+        //When a program creates a new Spreadsheet object, your constructor should use the provided IsValid
+        //delegate parameter before making calls to such functions as: GetCellContents;
+
+
     }
 }
