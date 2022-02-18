@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SS
 {
@@ -171,7 +172,7 @@ namespace SS
             /// <param name="lookup">Lookup delegate for value</param>
             public void ReEvaluate(Func<string, double> lookup)
             {
-                if ((contents is Formula))
+                if (contents is Formula)
                 {
                     Formula reEvaluate = (Formula)contents;
                     values = reEvaluate.Evaluate(lookup);
@@ -477,17 +478,105 @@ namespace SS
             return calculatedCells;
         }
 
-    
 
+        /// <summary>
+        ///   Look up the version information in the given file. If there are any problems opening, reading, 
+        ///   or closing the file, the method should throw a SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
+        /// 
+        /// <remarks>
+        ///   In an ideal world, this method would be marked static as it does not rely on an existing SpreadSheet
+        ///   object to work; indeed it should simply open a file, lookup the version, and return it.  Because
+        ///   C# does not support this syntax, we abused the system and simply create a "regular" method to
+        ///   be implemented by the base class.
+        /// </remarks>
+        /// 
+        /// <exception cref="SpreadsheetReadWriteException"> 
+        ///   Thrown if any problem occurs while reading the file or looking up the version information.
+        /// </exception>
+        /// 
+        /// <param name="filename"> The name of the file (including path, if necessary)</param>
+        /// <returns>Returns the version information of the spreadsheet saved in the named file.</returns>
 
         public override string GetSavedVersion(string filename)
         {
             throw new NotImplementedException();
         }
-
+        /// <summary>
+        /// Writes the contents of this spreadsheet to the named file using an XML format.
+        /// The XML elements should be structured as follows:
+        /// 
+        /// <spreadsheet version="version information goes here">
+        /// 
+        /// <cell>
+        /// <name>cell name goes here</name>
+        /// <contents>cell contents goes here</contents>    
+        /// </cell>
+        /// 
+        /// </spreadsheet>
+        /// 
+        /// There should be one cell element for each non-empty cell in the spreadsheet.  
+        /// If the cell contains a string, it should be written as the contents.  
+        /// If the cell contains a double d, d.ToString() should be written as the contents.  
+        /// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
+        /// 
+        /// If there are any problems opening, writing, or closing the file, the method should throw a
+        /// SpreadsheetReadWriteException with an explanatory message.
+        /// </summary>
         public override void Save(string filename)
         {
-            throw new NotImplementedException();
+            try
+            {
+                XmlWriterSettings settings = new XmlWriterSettings();
+                settings.Indent = true;
+                settings.IndentChars = "  ";
+                using (XmlWriter writer = XmlWriter.Create(filename, settings))
+                {
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("spreadsheet");
+                    //write all the elements => cell name, contents and spreadsheet version
+                    writer.WriteAttributeString("version", Version);
+
+                    foreach (string name in cells.Keys)
+                    {
+                        writer.WriteStartElement("cell");
+                        writer.WriteElementString("name", name);
+                        if (GetCellContents(name) is string)
+                        {
+                            string content = (string)GetCellContents(name);
+                            writer.WriteElementString("contents", content);
+                        }
+                        if (GetCellContents(name) is double)
+                        {
+                            double content = (double)GetCellContents(name);
+                            writer.WriteElementString("contents", content.ToString());
+                        }
+                        if (GetCellContents(name) is Formula)
+                        {
+                            Formula content = (Formula)GetCellContents(name);
+                            writer.WriteElementString("contents", "=" + content.ToString());
+                        }
+                        writer.WriteEndElement(); //this closes the cell tag
+                    }
+                    //writer.WriteElementString("name","cellname");
+                    // writer.WriteElementString("contents", "cell.contents");
+
+                    writer.WriteEndElement(); // this closes the spreadsheet tag
+
+                    writer.WriteEndDocument();
+                }
+            }
+                
+
+            catch (XmlException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+            catch (IOException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+
         }
 
         /// <summary>
