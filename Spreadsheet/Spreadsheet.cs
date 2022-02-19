@@ -13,7 +13,7 @@ namespace SS
     /// <summary>
     /// Author: Joe Zachary, Daniel Kopta, H. James de St. Germain & Abhiveer Sharma
     /// Partner: None
-    /// Date of Creation: Februrary 11, 2022
+    /// Date of Creation: Februrary 18, 2022
     /// Course: CS 3500, University of Utah, School of Computing
     /// Copyright: CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework. 
     /// I, Abhiveer Sharma, certify that I wrote this code from scratch and did not copy it in part or whole from  
@@ -79,7 +79,12 @@ namespace SS
             }
         }
 
-        //zero argument constructor
+         //zero argument constructor
+        /// <summary>
+        /// zero-argument constructor should create an empty spreadsheet
+        /// that imposes no extra validity conditions, normalizes every cell name to itself,
+        /// and use the name "default" as the version.
+        /// </summary>
         public Spreadsheet():base(s=>true,s=>s,"default")
         {
             // initialize spreadsheet variables;
@@ -88,6 +93,15 @@ namespace SS
             Changed = false;
         }
         //three argument constructor
+        /// <summary>
+        ///  Three-argument constructor to the Spreadsheet class.
+        ///  Just like the zero-argument constructor, it should create an empty spreadsheet.
+        ///  However, it should allow the user to provide a validity delegate (first parameter),
+        ///  a normalization delegate (second parameter), and a version (third parameter).
+        /// </summary>
+        /// <param name="isValid"></param>
+        /// <param name="normalize"></param>
+        /// <param name="version"></param>
         public Spreadsheet(Func<string,bool>isValid, Func<string,string>normalize,string version) : base(isValid,normalize,version)
         {
             // initialize spreadsheet variables;
@@ -96,6 +110,17 @@ namespace SS
             Changed = false;
         }
         //four argument constructor
+        /// <summary>
+        ///  four-argument constructor to the Spreadsheet class. It should allow the user to provide a string representing a path to a file (first parameter),
+        ///  a validity delegate (second parameter), a normalization delegate (third parameter), and a version (fourth parameter).
+        ///  It should read a saved spreadsheet from the file (see the Save method) and use it to construct a new spreadsheet.
+        ///  The new spreadsheet should use the provided validity delegate, normalization delegate, and version
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="isValid"></param>
+        /// <param name="normalize"></param>
+        /// <param name="version"></param>
+        /// <exception cref="SpreadsheetReadWriteException"></exception>
         public Spreadsheet(String filePath, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             // initialize spreadsheet variables;
@@ -145,7 +170,7 @@ namespace SS
 
         }
         /// <summary>
-        /// isVariable method helps in checking the validity of cell name
+        /// isVariable method helps in checking the validity of cell name by using the isValid delegate
         /// </summary>
         /// <param name="token"></param> The token to be matched with the regex
         /// <returns></returns> A boolean
@@ -291,11 +316,7 @@ namespace SS
         /// list {A1, B1, C1} is returned.
         /// </summary>
         protected override IList<string> SetCellContents(string name, double number)
-        {
-            if (ReferenceEquals(name, null) || !isVariable(name))
-            {
-                throw new InvalidNameException();
-            }
+        { 
             Cell cell = new Cell(number);
             if (cells.ContainsKey(name))
             {
@@ -321,16 +342,6 @@ namespace SS
         /// </summary>
         protected override IList<string> SetCellContents(string name, string text)
         {
-
-            if (ReferenceEquals(text, null))
-            {
-                throw new ArgumentNullException();
-            }
-            if(ReferenceEquals(name,null) || !isVariable(name))
-            {
-                throw new InvalidNameException();
-            }
-
             Cell cell = new Cell(text);
             if (cells.ContainsKey(name))
             {
@@ -358,15 +369,6 @@ namespace SS
         /// </summary>
         protected override IList<string> SetCellContents(string name, Formula formula)
         {
-
-            if (ReferenceEquals(formula, null))
-            {
-                throw new ArgumentNullException();
-            }
-            if(ReferenceEquals(name,null) || !isVariable(name))
-            {
-                throw new InvalidNameException();
-            }
             List<string> _dependees = new List<string>(dg.GetDependees(name));
             dg.ReplaceDependees(name, formula.GetVariables());
             //Use a try catch block to implement circular dependency
@@ -551,9 +553,7 @@ namespace SS
                 {
                     throw new SpreadsheetReadWriteException("file not found");
                 }
-            }
-
-            
+            } 
         }
         /// <summary>
         /// Writes the contents of this spreadsheet to the named file using an XML format.
@@ -611,9 +611,7 @@ namespace SS
                         }
                         writer.WriteEndElement(); //this closes the cell tag
                     }
-                    //writer.WriteElementString("name","cellname");
-                    // writer.WriteElementString("contents", "cell.contents");
-
+                   
                     writer.WriteEndElement(); // this closes the spreadsheet tag
 
                     writer.WriteEndDocument();
@@ -629,7 +627,7 @@ namespace SS
             {
                 throw new SpreadsheetReadWriteException(e.ToString());
             }
-
+            Changed = false;
         }
 
       
@@ -671,9 +669,6 @@ namespace SS
 
        
 
-        //doubts about PS5
-        //When a program creates a new Spreadsheet object, your constructor should use the provided IsValid
-        //delegate parameter before making calls to such functions as: GetCellContents;
 
 
     }

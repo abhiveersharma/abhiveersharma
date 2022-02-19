@@ -1,26 +1,24 @@
-﻿```
-Author:     Joe Zachary, Daniel Kopta, H. James de St. Germain & Abhiveer Sharma
+﻿﻿```
+Author:     H. James de St. Germain & Abhiveer Sharma
 Partner:    None
 Date:       18-Feb-2022
 Course:     CS 3500, University of Utah, School of Computing
 GitHub ID:  abhiveersharma
 Repo:       https://github.com/Utah-School-of-Computing-de-St-Germain/spreadsheet-abhiveersharma
 Commit #:   
-Project:    Spreadsheet Model 
+Project:    Spreadsheet Tests
 Copyright:  CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework.
 ```
 
 # Comments to Evaluators:
 
-The purpose of this assignment is to implement the "internals" of a spreadsheet program. 
-We have enhanced and extended functionality of our previous version by implementing methods like  SetContentsOfCell,
-GetCellValue, Save & GetSavedVersion.
-We can also detect errors like SpreadsheetReadWriteException if a file doesn't exist, etc.
+This is a MSTest Project where I test Spreadsheet.CS and test all the methods like GetCellContents, 
+SetContentsOfCell, GetNamesOfAllNonemptyCells, GetCellValue, Save & GetSavedVersion
+I also test exceptions like InvalidNameException, ArgumentNullException, SpreadsheetReadWriteException and Circular Dependency.
 I implemented a similar assignment last semester, as I am retaking the class.
 Some of my work in Spreadsheet.CS might resemble my earlier implementation.
 I am referencing that work and linking my repository -
 https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/Spreadsheet
-
 
 # Consulted Peers:
 

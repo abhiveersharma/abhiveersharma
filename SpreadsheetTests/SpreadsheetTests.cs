@@ -8,12 +8,12 @@ namespace SS
     /// <summary>
     /// Author: H. James de St. Germain, Abhiveer Sharma
     /// Partner: None
-    /// Date of Creation: Februrary 11, 2022
+    /// Date of Creation: Februrary 18, 2022
     /// Course: CS 3500, University of Utah, School of Computing
     /// Copyright: CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework. 
     /// I, Abhiveer Sharma, certify that I wrote this code from scratch and did not copy it in part or whole from  
     /// another source. All references used in the completion of the assignment are cited in my README file. 
-    /// I test all the methods like GetCellContents, SetCellContents, GetNamesOfAllNonemptyCells
+    /// I test all the methods like GetCellContents, SetContentsOfCell, GetNamesOfAllNonemptyCells, GetCellValue, Save & GetSavedVersion
     /// This is a test class for Spreadsheet class  and
     /// is intendedto contain all SpreadsheetTest Unit Tests
     /// </summary>
@@ -146,7 +146,13 @@ namespace SS
             sheet.SetContentsOfCell("4a", "a2");
         }
 
-       
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void Test15()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.GetCellValue("#A1");
+        }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
@@ -211,6 +217,64 @@ namespace SS
             sheet.SetContentsOfCell("A5", "2.5");
             sheet.SetContentsOfCell("A2", "=A4");
         }
+
+        //Testing the three argument constructor
+
+        [TestMethod]
+        public void Test22()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => true, s => s.ToUpper(), "");
+            sheet.SetContentsOfCell("A1", "hello");
+            Assert.AreEqual("hello", sheet.GetCellContents("a1"));
+        }
+
+        [TestMethod]
+        public void Test23()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => true, s => s.ToLower(), "");
+            sheet.SetContentsOfCell("a1", "hello");
+            Assert.AreEqual("hello", sheet.GetCellContents("A1"));
+        }
+
+        //Testing the Changed property of spreadsheet
+        [TestMethod]
+        public void Test24()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => true, s => s.ToLower(), "");
+            Assert.IsFalse(sheet.Changed);
+            sheet.SetContentsOfCell("a1", "hello");
+            Assert.IsTrue(sheet.Changed);
+
+        }
+
+        [TestMethod]
+        public void Test25()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("a1", "hello");
+            sheet.Save("sheet1.txt");
+            Assert.IsFalse(sheet.Changed);
+
+        }
+        //Testing Save and GetSavedVersion
+        [TestMethod]
+        public void Test26()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet(s => true, s => s, "1.0");
+            sheet.Save("sheet2.txt");
+            Assert.AreEqual("1.0", new Spreadsheet().GetSavedVersion("sheet2.txt"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadWriteException))]
+        public void Test27()
+        {
+            AbstractSpreadsheet ss = new Spreadsheet();
+            ss.Save("sheet3.txt");
+            ss = new Spreadsheet("sheet3.txt", s => true, s => s, "version");
+        }
+
+
 
 
 
