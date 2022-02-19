@@ -96,12 +96,53 @@ namespace SS
             Changed = false;
         }
         //four argument constructor
-        public Spreadsheet(String filePath,Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
+        public Spreadsheet(String filePath, Func<string, bool> isValid, Func<string, string> normalize, string version) : base(isValid, normalize, version)
         {
             // initialize spreadsheet variables;
             cells = new Dictionary<string, Cell>();
             dg = new DependencyGraph();
             Changed = false;
+           
+            try
+            {
+                if (GetSavedVersion(filePath) != version)
+                {
+                    throw new SpreadsheetReadWriteException("wrong file name !");
+                }
+                using (XmlReader reader = XmlReader.Create(filePath))
+                {
+                    string name = "";
+                    while (reader.Read())
+                    {
+                        if (reader.IsStartElement())
+                        {
+                            switch (reader.Name)
+                            {
+                                case "spreadsheet":
+                                    break;
+                                case "cell":
+                                    break;
+                                case "name":
+                                    name = reader.Value;
+                                    break;
+                                case "contents":
+                                    SetContentsOfCell(name, reader.Value);
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (IOException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+            catch (XmlException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+
+
         }
         /// <summary>
         /// isVariable method helps in checking the validity of cell name
@@ -500,7 +541,19 @@ namespace SS
 
         public override string GetSavedVersion(string filename)
         {
-            throw new NotImplementedException();
+            using (XmlReader reader = XmlReader.Create(filename))
+            {
+                if (reader.ReadToFollowing("spreadsheet"))
+                {
+                    return reader["version"]; 
+                }
+                else
+                {
+                    throw new SpreadsheetReadWriteException("file not found");
+                }
+            }
+
+            
         }
         /// <summary>
         /// Writes the contents of this spreadsheet to the named file using an XML format.
@@ -579,6 +632,7 @@ namespace SS
 
         }
 
+      
         /// <summary>
         /// If name is invalid, throws an InvalidNameException.
         /// </summary>
