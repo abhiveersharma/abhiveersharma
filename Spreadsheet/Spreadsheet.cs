@@ -52,7 +52,6 @@ namespace SS
     /// of course, can depend on the values of variables.  The value of a variable is the 
     /// value of the spreadsheet cell it names (if that cell's value is a double) or 
     /// is undefined (otherwise).
-    /// 
     /// Spreadsheets are never allowed to contain a combination of Formulas that establish
     /// a circular dependency.  A circular dependency exists when a cell depends on itself.
     /// For example, suppose that A1 contains B1*2, B1 contains C1*2, and C1 contains A1*2.
