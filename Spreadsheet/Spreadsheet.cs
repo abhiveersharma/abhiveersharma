@@ -136,6 +136,7 @@ namespace SS
                 using (XmlReader reader = XmlReader.Create(filePath))
                 {
                     string name = "";
+                    string content = "";
                     while (reader.Read())
                     {
                         if (reader.IsStartElement())
@@ -145,12 +146,16 @@ namespace SS
                                 case "spreadsheet":
                                     break;
                                 case "cell":
+                                    reader.Read();
                                     break;
                                 case "name":
+                                    reader.Read();
                                     name = reader.Value;
                                     break;
                                 case "contents":
-                                    SetContentsOfCell(name, reader.Value);
+                                    reader.Read();
+                                    content = reader.Value;
+                                    SetContentsOfCell(name, content);
                                     break;
                             }
                         }
