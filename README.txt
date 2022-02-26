@@ -1,13 +1,13 @@
 ```
-Author:     Abhiveer Sharma
-Partner:    None
-Date:       18-Feb-2022
+Author:     Abhiveer Sharma and Greyson Mitra
+Partner:    Greyson Mitra
+Date:       25-Feb-2022
 Course:     CS 3500, University of Utah, School of Computing
 GitHub ID:  abhiveersharma
-Repo:       https://github.com/Utah-School-of-Computing-de-St-Germain/spreadsheet-abhiveersharma
+Repo:       https://github.com/Utah-School-of-Computing-de-St-Germain/assignment-six---spreadsheet-and-gui-team_debuggers
 Commit #: 
 Solution:   Spreadsheet
-Copyright:  CS 3500 and Abhiveer Sharma - This work may not be copied for use in Academic Coursework.
+Copyright:  CS 3500, Abhiveer Sharma, and Greyson Mitra - This work may not be copied for use in Academic Coursework.
 ```
 
 # Overview of the Spreadsheet functionality
@@ -62,6 +62,7 @@ https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Sprea
     3. Assignment Three: Predicted Hours:          25       Actual Hours:       20
     4. Assignment Four:  Predicted Hours:          20       Actual Hours:       16
     5. Assignment Five:  Predicted Hours:          25       Actual Hours:       25
+    6. Assignment Six:   Predicted Hours:          18       Actual Hours:       
 # References
 1. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/FormulaEvaluator
 2. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/DependencyGraph
