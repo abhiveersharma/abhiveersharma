@@ -28,12 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.spreadsheetGridWidget1 = new SpreadsheetGrid_Core.SpreadsheetGridWidget();
+            this.SuspendLayout();
+            // 
+            // spreadsheetGridWidget1
+            // 
+            this.spreadsheetGridWidget1.BackColor = System.Drawing.SystemColors.MenuHighlight;
+            this.spreadsheetGridWidget1.Location = new System.Drawing.Point(0, -2);
+            this.spreadsheetGridWidget1.Name = "spreadsheetGridWidget1";
+            this.spreadsheetGridWidget1.Size = new System.Drawing.Size(1141, 650);
+            this.spreadsheetGridWidget1.TabIndex = 0;
+            // 
+            // SpreadsheetGUI
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1141, 649);
+            this.Controls.Add(this.spreadsheetGridWidget1);
+            this.Name = "SpreadsheetGUI";
             this.Text = "Form1";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private SpreadsheetGrid_Core.SpreadsheetGridWidget spreadsheetGridWidget1;
     }
 }
