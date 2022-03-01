@@ -1,3 +1,4 @@
+using SpreadsheetGrid_Core;
 using SS;
 
 namespace GUI
@@ -11,7 +12,22 @@ namespace GUI
             InitializeComponent();
 
             spreadsheet = new Spreadsheet(s => true, s => s, "six");
+            this.spreadsheetGrid.SelectionChanged += selectCell;
+            cellNameTextBox.Text = "A1";
         }
+
+        private string ConvertColRowToVariable(int col, int row)
+        {
+            char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+            return Alphabet[col] + (row + 1).ToString();
+        }
+
+        private void selectCell(SpreadsheetGridWidget sender)
+        {
+            sender.GetSelection(out int col, out int row);
+            cellNameTextBox.Text = ConvertColRowToVariable(col, row);
+        }
+
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -56,5 +72,38 @@ namespace GUI
                 MessageBox.Show("You have not saved your spreadsheet, are you sure you want to close?", "Unsaved Data!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void SpreadsheetGUI_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            
+
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Right)
+            {
+                spreadsheetGrid.GetSelection(out int col, out int row);
+                spreadsheetGrid.SetSelection(col + 1, row);
+            }
+            if (keyData == Keys.Left)
+            {
+                spreadsheetGrid.GetSelection(out int col, out int row);
+                spreadsheetGrid.SetSelection(col - 1, row);
+            }
+            if (keyData == Keys.Up)
+            {
+                spreadsheetGrid.GetSelection(out int col, out int row);
+                spreadsheetGrid.SetSelection(col, row-1);
+            }
+            if (keyData == Keys.Down)
+            {
+                spreadsheetGrid.GetSelection(out int col, out int row);
+                spreadsheetGrid.SetSelection(col, row + 1);
+            }
+
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
     }
 }
