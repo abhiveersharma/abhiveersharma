@@ -26,12 +26,16 @@ namespace GUI
         private void selectCell(SpreadsheetGridWidget sender)
         {
             sender.GetSelection(out int col, out int row);
-            cellNameTextBox.Text = ConvertColRowToVariable(col, row);
+            string selectedCellName = ConvertColRowToVariable(col, row);
+            cellNameTextBox.Text = selectedCellName;
 
             this.spreadsheetGrid.GetValue(col, row, out string selectedCellValue); //Also display the formula in the main selected cell formula txt box
-            cellValueTextBox.Text = selectedCellValue; //TODO: Make sure actually shows evaluated value of a formula with variables!
+            object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Eval cell value in spreadsheet
+            cellValueTextBox.Text = Convert.ToString(cellValue); 
 
             cellContentsTextBox.Text = selectedCellValue; //Also, change contents txt box to show what is in cell
+
+            cellContentsTextBox.Focus();
         }
 
 
@@ -79,6 +83,11 @@ namespace GUI
             }
         }
 
+        private void evaluateFormulaButton_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
         private void SpreadsheetGUI_KeyPress(object sender, KeyPressEventArgs e)
         {
             
@@ -106,6 +115,37 @@ namespace GUI
                 spreadsheetGrid.GetSelection(out int col, out int row);
                 spreadsheetGrid.SetSelection(col, row + 1);
             }
+            if (keyData == Keys.Tab)
+            {
+                spreadsheetGrid.GetSelection(out int col, out int row);
+                spreadsheetGrid.SetSelection(col + 1, row);
+            }
+
+            if (keyData == Keys.Enter)
+            {
+                this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
+                string selectedCellName = ConvertColRowToVariable(col, row); //Convert cell location to cell/variable name
+
+                string caseInsensitive = cellContentsTextBox.Text.ToUpper();
+                try
+                {
+                    this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
+                }
+                catch (FormulaFormatException exception)
+                {
+                    MessageBox.Show(exception.Message, "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (CircularException circE)
+                {
+                    MessageBox.Show("Cannot reference the current cell inside of itself!", "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Try to evaluate the cell's value in the spreadsheet
+                cellValueTextBox.Text = Convert.ToString(cellValue); //Set textbox to show evaluated cell value
+
+                this.spreadsheetGrid.SetValue(col, row, Convert.ToString(cellValue)); //Display the formula in the cell in grid
+
+            }
 
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -117,14 +157,18 @@ namespace GUI
             helpForm.Show();
             MessageBox.Show("Welcome to Spreadsheet!\n" +
                 "\tFile menu: The file menu in the top right corner allows you to... \n" +
-                "\topen a previously saved spreadsheet\n" +
-                "\tsave your current spreadsheet\n" +
-                "\topen any number of new spreadsheets\n" +
-                "\tclose the current spreadsheet (to avoid warnings, make sure to save first!)\n\n" +
+                "\t- open a previously saved spreadsheet\n" +
+                "\t- save your current spreadsheet\n" +
+                "\t- open any number of new spreadsheets\n" +
+                "\t- close the current spreadsheet (to avoid warnings, make sure to save first!)\n\n" +
                 "\tCell Operations: \n" +
-                "\tto select a cell, click on the desired cell or user the arrow keys\n" +
-                "\tto edit a cell's contents, click on the Formula textbox and enter a new formula!\n" +
-                "\tAdditional Features: \n"
+                "\t- to select a cell, click on the desired cell or user the arrow keys\n" +
+                "\t- to edit a cell's contents, click on the Formula textbox and enter a new formula!\n" +
+                "\tAdditional Features: \n" +
+                "\t- Default help text in formula box" +
+                "\t- Ctrl+s saves spreadsheet" + 
+                "\t- Enter key evaluates the typed formula" +
+                "\t- Mouse over formula textbox for tooltip"
                 , "Help Menu", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -132,15 +176,43 @@ namespace GUI
         {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
             string selectedCellName = ConvertColRowToVariable(col, row); //Change cell location to cell/variable name
-            this.spreadsheet.SetContentsOfCell(selectedCellName, cellContentsTextBox.Text); //Sets the contents of the cell to whatever text was entered into txt box
-            this.spreadsheetGrid.SetValue(col, row, cellContentsTextBox.Text); //Display the formula in the cell in grid
-            
+
         }
 
         private void cellContentsTextBox_Leave(object sender, EventArgs e)
         {
-            //cellContentsTextBox.Text = "";
+            this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
+            string selectedCellName = ConvertColRowToVariable(col, row); //Convert cell location to cell/variable name
+
+            object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Eval cell value in spreadsheet
+            cellValueTextBox.Text = Convert.ToString(cellValue); //
         }
 
+        private void evaluateFormulaButton_Click(object sender, EventArgs e)
+        {
+            this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
+            string selectedCellName = ConvertColRowToVariable(col, row); //Convert cell location to cell/variable name
+
+            string caseInsensitive = cellContentsTextBox.Text.ToUpper();
+            try
+            {
+                this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
+            }
+            catch (FormulaFormatException exception)
+            {
+                MessageBox.Show(exception.Message, "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+            }
+
+            object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Try to evaluate the cell's value in the spreadsheet
+            cellValueTextBox.Text = Convert.ToString(cellValue); //Set textbox to show evaluated cell value
+
+            this.spreadsheetGrid.SetValue(col, row, Convert.ToString(cellValue)); //Display the formula in the cell in grid
+
+        }
+
+        private void cellContentsTextBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            hoverMouseToolTip.SetToolTip(cellContentsTextBox, "Start each formula with '='");
+        }
     }
 }
