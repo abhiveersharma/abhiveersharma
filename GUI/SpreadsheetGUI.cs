@@ -22,6 +22,23 @@ namespace GUI
             char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
             return Alphabet[col] + (row + 1).ToString();
         }
+        private void ConvertVariableToColRow(string variable, out int col, out int row)
+        {
+            char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+            char[] variableArr = variable.ToCharArray();
+            col = 0;
+            foreach (char abc in Alphabet)
+            {
+                if (variableArr[0] == abc)
+                    break;
+                col = abc;
+            }
+            if (variable.Length == 2)
+                row = Convert.ToInt32(variableArr[1]) - 1;
+            else
+                row = Convert.ToInt32(variableArr[1] + variableArr[2]) - 1;
+        }
+
 
         private void selectCell(SpreadsheetGridWidget sender)
         {
@@ -66,7 +83,17 @@ namespace GUI
 
                 if (openDialog.ShowDialog() == DialogResult.OK)
                 {
-                    spreadsheet.GetSavedVersion(openDialog.FileName); //Gets version of file.. should be "six"
+                    string version = spreadsheet.GetSavedVersion(openDialog.FileName);
+                    Spreadsheet sprd = new Spreadsheet(openDialog.FileName, s => true, s => s, version);
+                    spreadsheet = new Spreadsheet();
+                    
+                    foreach(string name in spreadsheet.GetNamesOfAllNonemptyCells())
+                    {
+                        spreadsheetGrid.SetValue( col,  row, spreadsheet.GetCellValue(name));
+
+
+                    }
+                    //Gets version of file.. should be "six"
 
                     //spreadsheet
                 }
