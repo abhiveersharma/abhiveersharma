@@ -101,8 +101,7 @@ namespace GUI
                 {
                     string version = spreadsheet.GetSavedVersion(openDialog.FileName);
                     Spreadsheet sprd = new Spreadsheet(openDialog.FileName, s => true, s => s, version);
-                    spreadsheet = new Spreadsheet(); //Blank spreadsheet 
-                    
+                    this.spreadsheetGrid.Clear(); // clear the old contents from the spreadsheet                    
                     foreach(string name in sprd.GetNamesOfAllNonemptyCells())
                     {
                         ConvertVariableToColRow(name, out int col, out int row);
@@ -229,7 +228,10 @@ namespace GUI
             string caseInsensitive = cellContentsTextBox.Text.ToUpper();
             try
             {
+                Tuple<string, IList<string>> backgroundWorkerArgs = new Tuple<string, IList<string>>(selectedCellName, this.spreadsheet.SetContentsOfCell(selectedCellName,caseInsensitive));
                 this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
+                longCalcBGWorker.RunWorkerAsync(backgroundWorkerArgs);
+
             }
             catch (FormulaFormatException exception)
             {
@@ -240,6 +242,8 @@ namespace GUI
             cellValueTextBox.Text = Convert.ToString(cellValue); //Set textbox to show evaluated cell value
 
             this.spreadsheetGrid.SetValue(col, row, Convert.ToString(cellValue)); //Display the formula in the cell in grid
+                                                                                  // Call the background worker with arguments:
+           
 
         }
 
@@ -250,8 +254,11 @@ namespace GUI
 
         private void longCalcBGWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
-
+            Tuple<string, IList<string>> args = (Tuple<string, IList<string>>)e.Argument;
+           
         }
+
+        
     }
 
     public class HelpFormGUI : Form
