@@ -1,4 +1,4 @@
-namespace GUI
+ namespace GUI
 {
     class Spreadsheet_Window : ApplicationContext
     {
@@ -14,7 +14,7 @@ namespace GUI
 
         /// <summary>
         /// Returns the one DemoApplicationContext.
-        /// </summary>
+        /// </summary> 
         public static Spreadsheet_Window getAppContext()
         {
             if (appContext == null)
@@ -60,7 +60,11 @@ namespace GUI
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new SpreadsheetGUI());
+
+            // Start an application context and run one form inside it
+            Spreadsheet_Window appContext = Spreadsheet_Window.getAppContext();
+            appContext.RunForm(new SpreadsheetGUI());
+            Application.Run(appContext);
         }
     }
 }

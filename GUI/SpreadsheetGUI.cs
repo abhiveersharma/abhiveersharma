@@ -15,13 +15,27 @@ namespace GUI
             spreadsheet = new Spreadsheet(s => true, s => s, "six");
             this.spreadsheetGrid.SelectionChanged += selectCell;
             cellNameTextBox.Text = "A1";
+
         }
 
+        /// <summary>
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="col"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private string ConvertColRowToVariable(int col, int row)
         {
             char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
             return Alphabet[col] + (row + 1).ToString();
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <param name="col"></param>
+        /// <param name="row"></param>
         private void ConvertVariableToColRow(string variable, out int col, out int row)
         {
             char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
@@ -31,12 +45,14 @@ namespace GUI
             {
                 if (variableArr[0] == abc)
                     break;
-                col = abc;
+                col = variable[0] - 'A';
             }
             if (variable.Length == 2)
-                row = Convert.ToInt32(variableArr[1]) - 1;
+                int.TryParse(variable.Substring(1), out row);
             else
-                row = Convert.ToInt32(variableArr[1] + variableArr[2]) - 1;
+                int.TryParse(variable.Substring(1,2), out row);
+            
+            row = row - 1;
         }
 
 
@@ -48,9 +64,9 @@ namespace GUI
 
             this.spreadsheetGrid.GetValue(col, row, out string selectedCellValue); //Also display the formula in the main selected cell formula txt box
             object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Eval cell value in spreadsheet
-            cellValueTextBox.Text = Convert.ToString(cellValue); 
+            cellValueTextBox.Text = Convert.ToString(cellValue);
 
-            cellContentsTextBox.Text = selectedCellValue; //Also, change contents txt box to show what is in cell
+            cellContentsTextBox.Text = "="+spreadsheet.GetCellContents(selectedCellName).ToString(); //selectedCellValue; //Also, change contents txt box to show what is in cell
 
             cellContentsTextBox.Focus();
         }
@@ -69,7 +85,7 @@ namespace GUI
 
                 if(saveDialog.ShowDialog() == DialogResult.OK)
                 {
-                    spreadsheet.Save(saveDialog.FileName);
+                    spreadsheet.Save(saveDialog.FileName); //works!
                 }
 
             }
@@ -85,28 +101,34 @@ namespace GUI
                 {
                     string version = spreadsheet.GetSavedVersion(openDialog.FileName);
                     Spreadsheet sprd = new Spreadsheet(openDialog.FileName, s => true, s => s, version);
-                    spreadsheet = new Spreadsheet();
+                    spreadsheet = new Spreadsheet(); //Blank spreadsheet 
                     
-                    foreach(string name in spreadsheet.GetNamesOfAllNonemptyCells())
+                    foreach(string name in sprd.GetNamesOfAllNonemptyCells())
                     {
-                        spreadsheetGrid.SetValue( col,  row, spreadsheet.GetCellValue(name));
-
+                        ConvertVariableToColRow(name, out int col, out int row);
+                        this.spreadsheetGrid.SetValue(col, row, sprd.GetCellValue(name).ToString());
 
                     }
-                    //Gets version of file.. should be "six"
-
-                    //spreadsheet
                 }
             }
         }
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(spreadsheet.Changed == false)
-                Close();
+            Close(); //Closing handled by FormClosing function below
+        }
+
+        private void SpreadsheetGUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (spreadsheet.Changed == false)
+                e.Cancel = false;
             else
-            {
-                MessageBox.Show("You have not saved your spreadsheet, are you sure you want to close?", "Unsaved Data!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            {   //Save the result of what the user clicked on to DialogResult
+                DialogResult = MessageBox.Show("You have not saved your spreadsheet, are you sure you want to close?\n\nClick Ok to close anyway", "Unsaved Data!", MessageBoxButtons.OKCancel, MessageBoxIcon.Error, MessageBoxDefaultButton.Button2);
+                if (DialogResult == DialogResult.OK)
+                    e.Cancel = false;
+                else
+                    e.Cancel = true; //Cancels the closing of the form so it stays open for saving
             }
         }
 
@@ -174,29 +196,13 @@ namespace GUI
 
             }
 
-
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void helpButton_Click(object sender, EventArgs e)
         {
-            Form helpForm = new Form();
+            Form helpForm = new HelpFormGUI();
             helpForm.Show();
-            MessageBox.Show("Welcome to Spreadsheet!\n" +
-                "\tFile menu: The file menu in the top right corner allows you to... \n" +
-                "\t- open a previously saved spreadsheet\n" +
-                "\t- save your current spreadsheet\n" +
-                "\t- open any number of new spreadsheets\n" +
-                "\t- close the current spreadsheet (to avoid warnings, make sure to save first!)\n\n" +
-                "\tCell Operations: \n" +
-                "\t- to select a cell, click on the desired cell or user the arrow keys\n" +
-                "\t- to edit a cell's contents, click on the Formula textbox and enter a new formula!\n" +
-                "\tAdditional Features: \n" +
-                "\t- Default help text in formula box" +
-                "\t- Ctrl+s saves spreadsheet" + 
-                "\t- Enter key evaluates the typed formula" +
-                "\t- Mouse over formula textbox for tooltip"
-                , "Help Menu", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void cellContentsTextBox_TextChanged(object sender, EventArgs e)
@@ -240,6 +246,59 @@ namespace GUI
         private void cellContentsTextBox_MouseMove(object sender, MouseEventArgs e)
         {
             hoverMouseToolTip.SetToolTip(cellContentsTextBox, "Start each formula with '='");
+        }
+
+        private void longCalcBGWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+
+        }
+    }
+
+    public class HelpFormGUI : Form
+    {
+        private System.ComponentModel.IContainer components = null;
+        private Label helpMessageLabel;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        public HelpFormGUI()
+        {
+            this.components = new System.ComponentModel.Container();
+            //this.cellNameTextBox = new System.Windows.Forms.TextBox();
+            this.helpMessageLabel = new Label();
+            this.SuspendLayout();
+
+            this.helpMessageLabel.AutoSize = true;
+            this.helpMessageLabel.Font = new Font("Segoe UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            this.helpMessageLabel.Location = new Point(0, 0);
+            this.helpMessageLabel.Text = "Welcome to Spreadsheet!\n" +
+                "\tFile menu: The file menu in the top right corner allows you to... \n" +
+                "\t- open a previously saved spreadsheet\n" +
+                "\t- save your current spreadsheet\n" +
+                "\t- open any number of new spreadsheets\n" +
+                "\t- close the current spreadsheet (to avoid warnings, make sure to save first!)\n\n" +
+                "\tCell Operations: \n" +
+                "\t- to select a cell, click on the desired cell or use the arrow or tab keys\n" +
+                "\t- to edit a cell's contents, click on the Formula textbox and enter a new formula!\n\n" +
+                "\tAdditional Features: \n" +
+                "\t- Default help text in formula box\n" +
+                "\t- Ctrl+s saves spreadsheet\n" +
+                "\t- Enter key evaluates the typed formula\n" +
+                "\t- Mouse over formula textbox for tooltip\n";
+
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.ClientSize = new Size(500, 300);
+            this.Text = "Help Window";
+            this.Controls.Add(this.helpMessageLabel);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
     }
 }
