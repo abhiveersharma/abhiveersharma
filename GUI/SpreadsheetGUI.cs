@@ -93,6 +93,21 @@ namespace GUI
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (spreadsheet.Changed == true)
+            {
+                DialogResult = MessageBox.Show("You have not saved your spreadsheet, are you sure you want to close?\n\nClick Ok to close anyway", "Unsaved Data!", MessageBoxButtons.OKCancel, MessageBoxIcon.Error, MessageBoxDefaultButton.Button2);
+                if (DialogResult == DialogResult.OK) //Let the user open if they want to erase unsaved data
+                    openFileHelper();
+            }
+            else
+            {
+                openFileHelper();
+            }
+
+        }
+
+        private void openFileHelper()
+        {
             using (OpenFileDialog openDialog = new OpenFileDialog())
             {
                 openDialog.Filter = "sprd files (*.sprd)|*.sprd|All files (*.*)|*.*";
@@ -102,7 +117,7 @@ namespace GUI
                     string version = spreadsheet.GetSavedVersion(openDialog.FileName);
                     Spreadsheet sprd = new Spreadsheet(openDialog.FileName, s => true, s => s, version);
                     this.spreadsheetGrid.Clear(); // clear the old contents from the spreadsheet                    
-                    foreach(string name in sprd.GetNamesOfAllNonemptyCells())
+                    foreach (string name in sprd.GetNamesOfAllNonemptyCells())
                     {
                         ConvertVariableToColRow(name, out int col, out int row);
                         this.spreadsheetGrid.SetValue(col, row, sprd.GetCellValue(name).ToString());
@@ -171,28 +186,7 @@ namespace GUI
 
             if (keyData == Keys.Enter)
             {
-                this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
-                string selectedCellName = ConvertColRowToVariable(col, row); //Convert cell location to cell/variable name
-
-                string caseInsensitive = cellContentsTextBox.Text.ToUpper();
-                try
-                {
-                    this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
-                }
-                catch (FormulaFormatException exception)
-                {
-                    MessageBox.Show(exception.Message, "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (CircularException circE)
-                {
-                    MessageBox.Show("Cannot reference the current cell inside of itself!", "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-                object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Try to evaluate the cell's value in the spreadsheet
-                cellValueTextBox.Text = Convert.ToString(cellValue); //Set textbox to show evaluated cell value
-
-                this.spreadsheetGrid.SetValue(col, row, Convert.ToString(cellValue)); //Display the formula in the cell in grid
-
+                evaluateFormulaHelper();   
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -208,7 +202,6 @@ namespace GUI
         {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
             string selectedCellName = ConvertColRowToVariable(col, row); //Change cell location to cell/variable name
-
         }
 
         private void cellContentsTextBox_Leave(object sender, EventArgs e)
@@ -222,20 +215,39 @@ namespace GUI
 
         private void evaluateFormulaButton_Click(object sender, EventArgs e)
         {
+            evaluateFormulaHelper();  
+        }
+
+        private void evaluateFormulaHelper()
+        {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
             string selectedCellName = ConvertColRowToVariable(col, row); //Convert cell location to cell/variable name
 
             string caseInsensitive = cellContentsTextBox.Text.ToUpper();
             try
             {
-                Tuple<string, IList<string>> backgroundWorkerArgs = new Tuple<string, IList<string>>(selectedCellName, this.spreadsheet.SetContentsOfCell(selectedCellName,caseInsensitive));
-                this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
-                longCalcBGWorker.RunWorkerAsync(backgroundWorkerArgs);
-
+                IList<string> listOfDeps = this.spreadsheet.SetContentsOfCell(selectedCellName, caseInsensitive); //Sets the contents of the cell to whatever text was entered into txt box
+                
+                if(listOfDeps.Count > 50) //If there is a lot of recalculation to do, then do it in the background worker
+                    longCalcBGWorker.RunWorkerAsync(listOfDeps);
+                else //if not a lot, just do it in the main thread
+                {
+                    foreach (string dependent in listOfDeps) //Change all the cells that depend on the changing cell so that they all update
+                    {
+                        this.spreadsheet.GetCellValue(dependent);
+                        ConvertVariableToColRow(dependent, out col, out row);
+                        object depValue = this.spreadsheet.GetCellValue(dependent);
+                        this.spreadsheetGrid.SetValue(col, row, Convert.ToString(depValue));
+                    }
+                }
             }
             catch (FormulaFormatException exception)
             {
-                MessageBox.Show(exception.Message, "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+                MessageBox.Show(exception.Message, "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (CircularException circE)
+            {
+                MessageBox.Show("Cannot reference the current cell inside of itself!", "Invalid Formula!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             object cellValue = this.spreadsheet.GetCellValue(selectedCellName); //Try to evaluate the cell's value in the spreadsheet
@@ -243,8 +255,6 @@ namespace GUI
 
             this.spreadsheetGrid.SetValue(col, row, Convert.ToString(cellValue)); //Display the formula in the cell in grid
                                                                                   // Call the background worker with arguments:
-           
-
         }
 
         private void cellContentsTextBox_MouseMove(object sender, MouseEventArgs e)
@@ -254,11 +264,14 @@ namespace GUI
 
         private void longCalcBGWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
-            Tuple<string, IList<string>> args = (Tuple<string, IList<string>>)e.Argument;
-           
+            foreach (string dependent in (IList<string>)e.Argument) //Change all the cells that depend on the changing cell so that they all update
+            {
+                this.spreadsheet.GetCellValue(dependent);
+                ConvertVariableToColRow(dependent, out int col, out int row);
+                object depValue = this.spreadsheet.GetCellValue(dependent);
+                this.spreadsheetGrid.SetValue(col, row, Convert.ToString(depValue));
+            }
         }
-
-        
     }
 
     public class HelpFormGUI : Form
