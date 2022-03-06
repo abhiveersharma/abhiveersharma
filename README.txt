@@ -32,6 +32,11 @@ We have enhanced and extended functionality of our previous version by implement
 GetCellValue, Save & GetSavedVersion.
 We can also detect errors like SpreadsheetReadWriteException if a file doesn't exist, etc.
 
+With Assignment Six done, our spreadsheet now has a simple GUI. The GUI shows cells from A-Z with numbers 1-99. It shows the cell's formulas, values,
+and can update when dependee cells are changed. The GUI can open multiple new spreadsheets, can save, open previously saved spreadsheets, and can close
+in multiple ways. It also has a help menu to show the user and TAs how our GUI works. There are warnings for not saving before closing the current
+spreadsheet. There are a few additional features as well (see help menu).
+
 The work in this assignment, specifically the implementation of the extension class in Evaluator.CS is inspired by Prof. Daniel Kopta's work.
 The implementation of PS1 might resemble my earlier implementation, as I am retaking the class. 
 I am linking my repository here: https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/FormulaEvaluator
@@ -62,7 +67,7 @@ https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Sprea
     3. Assignment Three: Predicted Hours:          25       Actual Hours:       20
     4. Assignment Four:  Predicted Hours:          20       Actual Hours:       16
     5. Assignment Five:  Predicted Hours:          25       Actual Hours:       25
-    6. Assignment Six:   Predicted Hours:          18       Actual Hours:       
+    6. Assignment Six:   Predicted Hours:          18       Actual Hours:       27
 # References
 1. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/FormulaEvaluator
 2. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/DependencyGraph

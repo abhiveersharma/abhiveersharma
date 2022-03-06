@@ -4,10 +4,16 @@ using System.Diagnostics;
 
 namespace GUI
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class SpreadsheetGUI : Form
     {
         private AbstractSpreadsheet spreadsheet;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public SpreadsheetGUI()
         {
             InitializeComponent();
@@ -15,7 +21,6 @@ namespace GUI
             spreadsheet = new Spreadsheet(s => true, s => s, "six");
             this.spreadsheetGrid.SelectionChanged += selectCell;
             cellNameTextBox.Text = "A1";
-
         }
 
         /// <summary>
@@ -30,6 +35,7 @@ namespace GUI
             char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
             return Alphabet[col] + (row + 1).ToString();
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -55,7 +61,10 @@ namespace GUI
             row = row - 1;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
         private void selectCell(SpreadsheetGridWidget sender)
         {
             sender.GetSelection(out int col, out int row);
@@ -71,12 +80,21 @@ namespace GUI
             cellContentsTextBox.Focus();
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Spreadsheet_Window.getAppContext().RunForm(new SpreadsheetGUI());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog saveDialog = new SaveFileDialog())
@@ -87,10 +105,14 @@ namespace GUI
                 {
                     spreadsheet.Save(saveDialog.FileName); //works!
                 }
-
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (spreadsheet.Changed == true)
@@ -103,9 +125,11 @@ namespace GUI
             {
                 openFileHelper();
             }
-
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void openFileHelper()
         {
             using (OpenFileDialog openDialog = new OpenFileDialog())
@@ -127,11 +151,21 @@ namespace GUI
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close(); //Closing handled by FormClosing function below
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SpreadsheetGUI_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (spreadsheet.Changed == false)
@@ -146,16 +180,33 @@ namespace GUI
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void evaluateFormulaButton_KeyPress(object sender, KeyPressEventArgs e)
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SpreadsheetGUI_KeyPress(object sender, KeyPressEventArgs e)
         {
             
 
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="keyData"></param>
+        /// <returns></returns>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == Keys.Right)
@@ -192,18 +243,33 @@ namespace GUI
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void helpButton_Click(object sender, EventArgs e)
         {
             Form helpForm = new HelpFormGUI();
             helpForm.Show();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cellContentsTextBox_TextChanged(object sender, EventArgs e)
         {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
             string selectedCellName = ConvertColRowToVariable(col, row); //Change cell location to cell/variable name
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cellContentsTextBox_Leave(object sender, EventArgs e)
         {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
@@ -213,11 +279,19 @@ namespace GUI
             cellValueTextBox.Text = Convert.ToString(cellValue); //
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void evaluateFormulaButton_Click(object sender, EventArgs e)
         {
             evaluateFormulaHelper();  
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void evaluateFormulaHelper()
         {
             this.spreadsheetGrid.GetSelection(out int col, out int row); //Get location of cell to change (currently selected cell)
@@ -257,11 +331,22 @@ namespace GUI
                                                                                   // Call the background worker with arguments:
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cellContentsTextBox_MouseMove(object sender, MouseEventArgs e)
         {
             hoverMouseToolTip.SetToolTip(cellContentsTextBox, "Start each formula with '='");
         }
 
+        /// <summary>
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void longCalcBGWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
             foreach (string dependent in (IList<string>)e.Argument) //Change all the cells that depend on the changing cell so that they all update
@@ -272,6 +357,7 @@ namespace GUI
                 this.spreadsheetGrid.SetValue(col, row, Convert.ToString(depValue));
             }
         }
+     //End of SpreadsheetGUI Form class
     }
 
     public class HelpFormGUI : Form
@@ -290,7 +376,6 @@ namespace GUI
         public HelpFormGUI()
         {
             this.components = new System.ComponentModel.Container();
-            //this.cellNameTextBox = new System.Windows.Forms.TextBox();
             this.helpMessageLabel = new Label();
             this.SuspendLayout();
 
@@ -308,9 +393,10 @@ namespace GUI
                 "\t- to edit a cell's contents, click on the Formula textbox and enter a new formula!\n\n" +
                 "\tAdditional Features: \n" +
                 "\t- Default help text in formula box\n" +
-                "\t- Ctrl+s saves spreadsheet\n" +
+                "\t- Keyboard shortcuts for file menu options (see file menu)\n" +
                 "\t- Enter key evaluates the typed formula\n" +
-                "\t- Mouse over formula textbox for tooltip\n";
+                "\t- Mouse over formula textbox for tooltip\n" +
+                "\t- Custom Form for help menu!\n";
 
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ClientSize = new Size(500, 300);
@@ -318,7 +404,6 @@ namespace GUI
             this.Controls.Add(this.helpMessageLabel);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
     }
 }
