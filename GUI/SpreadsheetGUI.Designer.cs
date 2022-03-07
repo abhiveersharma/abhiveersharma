@@ -202,7 +202,7 @@
             this.evaluateFormulaButton.Text = "Evaluate";
             this.evaluateFormulaButton.UseVisualStyleBackColor = true;
             this.evaluateFormulaButton.Click += new System.EventHandler(this.evaluateFormulaButton_Click);
-            this.evaluateFormulaButton.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.evaluateFormulaButton_KeyPress);
+            this.evaluateFormulaButton.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.SpreadsheetGUI_KeyPress);
             // 
             // hoverMouseToolTip
             // 

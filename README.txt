@@ -67,7 +67,12 @@ https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Sprea
     3. Assignment Three: Predicted Hours:          25       Actual Hours:       20
     4. Assignment Four:  Predicted Hours:          20       Actual Hours:       16
     5. Assignment Five:  Predicted Hours:          25       Actual Hours:       25
-    6. Assignment Six:   Predicted Hours:          18       Actual Hours:       27
+    6. Assignment Six:   Predicted Hours:          18       Actual Hours:       27  (pair programming the entire time)
+
+    We feel that although our estimate was off, we have both been pretty good as estimating how much time we spent. This assignment
+    took more time than we expected since there was a lot to get used to with the GUI designer as well as new things to learn to work
+    together as partners.
+
 # References
 1. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/FormulaEvaluator
 2. https://github.com/uofu-cs3500-fall21/spreadsheet-abhiveersharma/tree/main/Spreadsheet/DependencyGraph
